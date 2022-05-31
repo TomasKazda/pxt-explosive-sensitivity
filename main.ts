@@ -12,8 +12,10 @@ let deltas = 20
 let deltamodifier = 1 //1 = 100% 2 = 200% ...
 let booom = true
 let radiocast = false
+let stop = true
 
 let reset = ():void => {
+    stop = true
     basic.showNumber(3, 200)
     basic.showNumber(2, 200)
     basic.showNumber(1, 200)
@@ -31,6 +33,7 @@ let reset = ():void => {
     accsn = Math.idiv(accs, 6)
     soundExpression.slide.playUntilDone()
     clear()
+    stop = false
     booom = false
 }
 
@@ -43,7 +46,7 @@ let clear = ():void => {
 }
 
 basic.forever(function () {
-    if (!booom)
+    if (!stop)
     {
         let accx = input.acceleration(Dimension.X)
         let accy = input.acceleration(Dimension.Y)
@@ -57,10 +60,12 @@ basic.forever(function () {
         if (xyzacc > 9) booom = true //shake it, baby
         if (Math.abs(xaxis) > 2 || Math.abs(yaxis) > 2) booom = true //on an inclined surface
 
-        if (booom) {
+        if (booom && !stop) {
             if (radiocast) {
+                radio.sendNumber(myId)
                 radio.sendNumber(myId + 10)
             }
+            stop = true
             basic.showIcon(IconNames.Sad, 0)
             soundExpression.sad.playUntilDone()
         } else {
@@ -94,7 +99,6 @@ basic.forever(function () {
 
 input.onLogoEvent(TouchButtonEvent.LongPressed, function() {
     radiocast = false
-    booom = true
     reset()
 })
 
@@ -102,7 +106,7 @@ input.onButtonPressed(Button.A, function() {
     radiocast = !radiocast
     if (radiocast)
     {
-        booom = true
+        stop = true
         basic.showLeds(`
           # # # # #
           . # # # .
@@ -112,7 +116,6 @@ input.onButtonPressed(Button.A, function() {
         `)
         radio.sendNumber(myId)
     } else {
-        booom = true
         reset()
     }
 })
@@ -124,21 +127,21 @@ radio.onReceivedNumber(function(receivedNumber: number) {
         radio.sendNumber(myId)
         reset()
     }
-    //finished OK
-    if (receivedNumber == 100 && radiocast && !booom) {
-        booom = true
-        radio.sendNumber(myId)
-        basic.showIcon(IconNames.Happy, 0)
-        soundExpression.happy.playUntilDone()
-    }
     //finished KO
     if (receivedNumber == 100 && radiocast && booom) {
+        stop = true
         radio.sendNumber(myId)
         radio.sendNumber(myId + 10)
         basic.showIcon(IconNames.Sad, 0)
         soundExpression.sad.playUntilDone()
     }
-
+    //finished OK
+    if (receivedNumber == 100 && radiocast && !booom) {
+        stop = true
+        radio.sendNumber(myId)
+        basic.showIcon(IconNames.Happy, 0)
+        soundExpression.happy.playUntilDone()
+    }
     //set deltamodifier
     if (receivedNumber >= 20 && receivedNumber <= 40 && booom) {
         let newdelta = 1 + ((receivedNumber - 22) / 10)
