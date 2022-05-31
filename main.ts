@@ -55,8 +55,12 @@ basic.forever(function () {
 
         if (accz > -512) booom = true //face down orientation
         if (xyzacc > 9) booom = true //shake it, baby
+        if (Math.abs(xaxis) > 2 || Math.abs(yaxis) > 2) booom = true //on an inclined surface
 
         if (booom) {
+            if (radiocast) {
+                radio.sendNumber(myId + 10)
+            }
             basic.showIcon(IconNames.Sad, 0)
             soundExpression.sad.playUntilDone()
         } else {
@@ -89,6 +93,7 @@ basic.forever(function () {
 // })
 
 input.onLogoEvent(TouchButtonEvent.LongPressed, function() {
+    radiocast = false
     booom = true
     reset()
 })
@@ -128,6 +133,7 @@ radio.onReceivedNumber(function(receivedNumber: number) {
     }
     //finished KO
     if (receivedNumber == 100 && radiocast && booom) {
+        radio.sendNumber(myId)
         radio.sendNumber(myId + 10)
         basic.showIcon(IconNames.Sad, 0)
         soundExpression.sad.playUntilDone()
@@ -137,7 +143,24 @@ radio.onReceivedNumber(function(receivedNumber: number) {
     if (receivedNumber >= 20 && receivedNumber <= 40 && booom) {
         let newdelta = 1 + ((receivedNumber - 22) / 10)
         deltamodifier = newdelta
-        basic.showNumber(deltamodifier*100, 500)
+        basic.showNumber(deltamodifier*100, 100)
     }
     
 })
+
+/*
+
+Rozbuška
+-	Dlouhé podržení „loga" - Začátek hry (jedno zařízení nezávisle)
+-	A button - přepínač mezi „dálkovým" ovládáním a lokální hrou
+Rozbuška – dálkové ovládání
+-	A button - zvyšuje obtížnost (tolerance 80 %–280 %)
+-	B button - snižuje obtížnost (tolerance 80 %–280 %)
+-	Stisk „loga" - odeslání obtížnosti (neaktivním) rozbuškám
+-	Stisk a puštění A+B tlačítka zároveň - Synchronizovaný (dálkový) start
+-	Dlouhé podržení „loga" - Synchronizovaný (dálkový) stop
+Poznámky
+Po zobrazení odpočtu 3, 2, 1 následuje 0,5 s dlouhé „okno", kdy je nutné mít micro:bit zcela v klidu (klidně položený) a ve vodorovné poloze! Zjišťuje se „výchozí klidový" stav.
+
+
+*/
