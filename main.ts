@@ -63,6 +63,7 @@ basic.forever(function () {
         if (booom && !stop) {
             if (radiocast) {
                 radio.sendNumber(myId)
+                basic.pause(1)
                 radio.sendNumber(myId + 10)
             }
             stop = true
@@ -121,6 +122,11 @@ input.onButtonPressed(Button.A, function() {
 })
 
 radio.onReceivedNumber(function(receivedNumber: number) {
+    /*
+        pokus o zamezení odeslání odpovědi ve stejnou chvíli jako ostatní
+    */
+    control.waitMicros(Math.randomRange(500, 1500))
+    
     //start game
     if (receivedNumber == 99 && radiocast)
     {
@@ -131,6 +137,7 @@ radio.onReceivedNumber(function(receivedNumber: number) {
     if (receivedNumber == 100 && radiocast && booom) {
         stop = true
         radio.sendNumber(myId)
+        basic.pause(1)
         radio.sendNumber(myId + 10)
         basic.showIcon(IconNames.Sad, 0)
         soundExpression.sad.playUntilDone()
