@@ -1,11 +1,17 @@
-music.setVolume(64)
+radio.setGroup(38)
+radio.setTransmitPower(7)
+let myId = 0
+
+music.setVolume(255)
 input.setAccelerometerRange(AcceleratorRange.TwoG)
 let accxn = 0
 let accyn = 0
 let accsn = 1048
 let deltaxy = 66
 let deltas = 20
+let deltamodifier = 1 //1 = 100% 2 = 200% ...
 let booom = true
+let radiocast = false
 
 let reset = ():void => {
     basic.showNumber(3, 200)
@@ -43,9 +49,9 @@ basic.forever(function () {
         let accy = input.acceleration(Dimension.Y)
         let accz = input.acceleration(Dimension.Z)
         let accs = input.acceleration(Dimension.Strength)
-        let xaxis = Math.idiv(accx - accxn, deltaxy)
-        let yaxis = Math.idiv(accy - accyn, deltaxy)
-        let xyzacc = Math.idiv(Math.abs(accs - accsn), deltas)
+        let xaxis = Math.idiv(accx - accxn, deltaxy * deltamodifier)
+        let yaxis = Math.idiv(accy - accyn, deltaxy * deltamodifier)
+        let xyzacc = Math.idiv(Math.abs(accs - accsn), deltas * deltamodifier)
 
         if (accz > -512) booom = true //face down orientation
         if (xyzacc > 9) booom = true //shake it, baby
@@ -87,4 +93,51 @@ input.onLogoEvent(TouchButtonEvent.LongPressed, function() {
     reset()
 })
 
-reset()
+input.onButtonPressed(Button.A, function() {
+    radiocast = !radiocast
+    if (radiocast)
+    {
+        booom = true
+        basic.showLeds(`
+          # # # # #
+          . # # # .
+          . . # . .
+          . # # # .
+          # # # # #
+        `)
+        radio.sendNumber(myId)
+    } else {
+        booom = true
+        reset()
+    }
+})
+
+radio.onReceivedNumber(function(receivedNumber: number) {
+    //start game
+    if (receivedNumber == 99 && radiocast)
+    {
+        radio.sendNumber(myId)
+        reset()
+    }
+    //finished OK
+    if (receivedNumber == 100 && radiocast && !booom) {
+        booom = true
+        radio.sendNumber(myId)
+        basic.showIcon(IconNames.Happy, 0)
+        soundExpression.happy.playUntilDone()
+    }
+    //finished KO
+    if (receivedNumber == 100 && radiocast && booom) {
+        radio.sendNumber(myId + 10)
+        basic.showIcon(IconNames.Sad, 0)
+        soundExpression.sad.playUntilDone()
+    }
+
+    //set deltamodifier
+    if (receivedNumber >= 20 && receivedNumber <= 40 && booom) {
+        let newdelta = 1 + ((receivedNumber - 22) / 10)
+        deltamodifier = newdelta
+        basic.showNumber(deltamodifier*100, 500)
+    }
+    
+})
