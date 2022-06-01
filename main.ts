@@ -8,7 +8,7 @@ let accxn = 0
 let accyn = 0
 let accsn = 1048
 let deltaxy = 66
-let deltas = 20
+let deltas = 25
 let deltamodifier = 1 //1 = 100% 2 = 200% ...
 let booom = true
 let radiocast = false
@@ -153,6 +153,7 @@ radio.onReceivedNumber(function(receivedNumber: number) {
     if (receivedNumber >= 20 && receivedNumber <= 40 && booom) {
         let newdelta = 1 + ((receivedNumber - 22) / 10)
         deltamodifier = newdelta
+        soundExpression.happy.play()
         basic.showNumber(deltamodifier*100, 100)
     }
     
