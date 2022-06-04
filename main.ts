@@ -7,23 +7,23 @@ input.setAccelerometerRange(AcceleratorRange.TwoG)
 let accxn = 0
 let accyn = 0
 let accsn = 1048
-let deltaxy = 66
-let deltas = 25
-let deltamodifier = 1 //1 = 100% 2 = 200% ...
+let deltaxy = 50
+let deltas = 30
+let deltamodifier = 1.2 //1 = 100% 2 = 200% ...
 let booom = true
 let radiocast = false
 let stop = true
 
 let reset = ():void => {
     stop = true
-    basic.showNumber(3, 200)
-    basic.showNumber(2, 200)
-    basic.showNumber(1, 200)
+    basic.showNumber(3, 100)
+    basic.showNumber(2, 100)
+    basic.showNumber(1, 100)
     let accx = input.acceleration(Dimension.X)
     let accy = input.acceleration(Dimension.Y)
     let accs = input.acceleration(Dimension.Strength)
     for (let i = 0; i < 5; i++) {
-        basic.pause(100)
+        basic.pause(50)
         accx += input.acceleration(Dimension.X)
         accy += input.acceleration(Dimension.Y)
         accs += input.acceleration(Dimension.Strength)
@@ -84,49 +84,47 @@ basic.forever(function () {
     basic.pause(100)
 })
 
-// control.inBackground(function() {
-//     let delaymin = 75
-//     let tonemin = 50
-//     let shift = Math.constrain(10 - toneshift, 0, 10)
-//     basic.forever(function () {
-//         if (!booom)
-//         {
-//             shift = Math.constrain(10 - toneshift, 0, 10)
-//             music.playTone(440, tonemin + 40 * shift)
-//             music.rest(delaymin + 80 * shift)
-//         }
-//     })
-// })
-
-input.onLogoEvent(TouchButtonEvent.LongPressed, function() {
-    radiocast = false
-    reset()
+input.onButtonPressed(Button.A, function() {
+    if (input.logoIsPressed() && stop) {
+        deltamodifier = Math.constrain(deltamodifier - 0.1, 0.8, 2.8)
+        whaleysans.showNumber(deltamodifier * 10)
+    } else {
+        radiocast = !radiocast
+        if (radiocast) {
+            stop = true
+            basic.showLeds(`
+            # # # # #
+            . # # # .
+            . . # . .
+            . # # # .
+            # # # # #
+            `)
+            radio.sendNumber(myId)
+        } else {
+            reset()
+        }
+    }
 })
 
-input.onButtonPressed(Button.A, function() {
-    radiocast = !radiocast
-    if (radiocast)
-    {
-        stop = true
-        basic.showLeds(`
-          # # # # #
-          . # # # .
-          . . # . .
-          . # # # .
-          # # # # #
-        `)
-        radio.sendNumber(myId)
-    } else {
-        reset()
+input.onButtonPressed(Button.B, function() {
+    if (input.logoIsPressed() && stop) {
+        deltamodifier = Math.constrain(deltamodifier + 0.1, 0.8, 2.8)
+        whaleysans.showNumber(deltamodifier * 10)
     }
 })
 
 radio.onReceivedNumber(function(receivedNumber: number) {
+    //set deltamodifier
+    if (receivedNumber >= 20 && receivedNumber <= 40 && booom) {
+        let newdelta = 1 + ((receivedNumber - 22) / 10)
+        deltamodifier = newdelta
+        soundExpression.happy.play()
+        basic.showNumber(deltamodifier * 100, 100)
+    }
     /*
         pokus o zamezení odeslání odpovědi ve stejnou chvíli jako ostatní
     */
-    control.waitMicros(Math.randomRange(500, 1500))
-    
+    control.waitMicros(600 + 200 * Math.randomRange(0, 20))
     //start game
     if (receivedNumber == 99 && radiocast)
     {
@@ -149,14 +147,6 @@ radio.onReceivedNumber(function(receivedNumber: number) {
         basic.showIcon(IconNames.Happy, 0)
         soundExpression.happy.playUntilDone()
     }
-    //set deltamodifier
-    if (receivedNumber >= 20 && receivedNumber <= 40 && booom) {
-        let newdelta = 1 + ((receivedNumber - 22) / 10)
-        deltamodifier = newdelta
-        soundExpression.happy.play()
-        basic.showNumber(deltamodifier*100, 100)
-    }
-    
 })
 
 /*

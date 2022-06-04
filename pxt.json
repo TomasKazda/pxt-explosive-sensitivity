@@ -5,7 +5,8 @@
     "dependencies": {
         "core": "*",
         "radio": "*",
-        "microphone": "*"
+        "microphone": "*",
+        "WhaleySansFont": "github:makecode-extensions/whaleysansfont#v1.1.0"
     },
     "files": [
         "README.md",
