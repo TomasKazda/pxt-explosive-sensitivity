@@ -152,8 +152,9 @@ radio.onReceivedNumber(function(receivedNumber: number) {
 /*
 
 Rozbuška
--	Dlouhé podržení „loga" - Začátek hry (jedno zařízení nezávisle)
--	A button - přepínač mezi „dálkovým" ovládáním a lokální hrou
+-	A button - přepínač mezi „dálkovým" ovládáním a (re)startem lokální hrou
+-   logo + A button - zvyšuje obtížnost (tolerance 80 %–280 %)
+-   logo + B button - snižuje obtížnost (tolerance 80 %–280 %)
 Rozbuška – dálkové ovládání
 -	A button - zvyšuje obtížnost (tolerance 80 %–280 %)
 -	B button - snižuje obtížnost (tolerance 80 %–280 %)
